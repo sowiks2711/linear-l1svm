@@ -24,8 +24,8 @@ l1svm<-function(data, target, cost=1, epsilon=0.1, bias=1, verbose=FALSE, ...) {
   U = cost
   Qii <- y * y * sapply(1:l, function(i) xs[i,]%*%xs[i,])
   for (k in 1:1000) {
-    prev_alpha <- alpha
-    for(i in 1:l) {
+    prev_w <- w
+    for(i in sample(1:l)) {
       G <- y[i] * w %*% xs[i,] - 1
       PG <- G
 
@@ -43,7 +43,7 @@ l1svm<-function(data, target, cost=1, epsilon=0.1, bias=1, verbose=FALSE, ...) {
         w <- w + (alpha[i] - old_alpha)*y[i]*xs[i,]
       }
     }
-    diff <- prev_alpha - alpha
+    diff <- prev_w - w
     if(sqrt(diff %*% diff) < epsilon) break
 
   }

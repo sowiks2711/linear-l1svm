@@ -14,6 +14,6 @@ yTest=y[-train]
 
 s=scale(xTrain,center=TRUE,scale=TRUE)
 
-print(LiblineaR(data=s,target=yTrain,type=3,cost=0.1, epsilon = 0.01, bias=1, cross=0,verbose=FALSE))
+print(LiblineaR(data=s,target=yTrain,type=3,cost=0.1, epsilon = 0.001, bias=1, cross=0,verbose=FALSE))
 l1svm(data=s,target=yTrain,cost=0.1, epsilon=0.001, bias=1)
 cat("Results for C=",co," : ",acc," accuracy.\n",sep="")
