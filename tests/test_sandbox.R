@@ -1,19 +1,59 @@
 library(LiblineaR)
 library(l1svm)
 library(dplyr)
-data(iris)
-data <- iris %>% filter(Species != "setosa")
-x=data[,1:4]
-y=factor(data[,5])
-train=sample(1:dim(data)[1],100)
+library(SparseM)
+library(microbenchmark)
+library(kolejkeR)
 
-xTrain=x[train,]
-xTest=x[-train,]
-yTrain=y[train]
-yTest=y[-train]
+data("warsaw_queues")
+data <- warsaw_queues %>% filter(!is.na(status)) %>% select(czasObslugi, liczbaCzynnychStan, liczbaKlwKolejce, status)
 
-s=scale(xTrain,center=TRUE,scale=TRUE)
+data
+x <- data[,1:3]
+y <- data[,4]
 
-print(LiblineaR(data=s,target=yTrain,type=3,cost=0.1, epsilon = 0.001, bias=1, cross=0,verbose=FALSE))
-l1svm(data=s,target=yTrain,cost=0.1, epsilon=0.001, bias=1)
+# l1svm, l2svm, implementation
+
+measurements2 <- lapply(seq(1000,10000,1000), function(size) {
+  train=sample(1:dim(data)[1],size)
+  xTrain=x[train,]
+  yTrain=y[train]
+  s=scale(xTrain,center=TRUE,scale=TRUE)
+
+  l2svm_their <- function() LiblineaR(data=s,target=yTrain,type=1,cost=0.1, epsilon = 0.001, bias=1, cross=0,verbose=FALSE)
+  l1svm_their <- function() LiblineaR(data=s,target=yTrain,type=3,cost=0.1, epsilon = 0.001, bias=1, cross=0,verbose=FALSE)
+  l1svm_ours <- function() l1svm(data=s,target=yTrain,cost=0.1, epsilon=0.001, bias=1)
+
+  microbenchmark(l2svm_their(), l1svm_their(), l1svm_ours(), times = 5)
+})
+
+measurements
+
+times_with_size <- M
+benchmark_data <- Reduce(function(x, y) rbind, measurements)
+
+library(ggplot2)
+benchmark_data %>%
+
+res %>% mutate(size = 100)
+cbind(size=100, res)
 cat("Results for C=",co," : ",acc," accuracy.\n",sep="")
+
+# Sparsifying the iris dataset:
+iS=apply(iris[,1:4],2,function(a){a[a<quantile(a,probs=c(0.25))]=0;return(a)})
+irisSparse<-as.matrix.csr(iS)
+
+# Applying a similar methodology as above:
+xTrain=irisSparse[train,]
+xTest=irisSparse[-train,]
+
+# Re-train best model with best cost value.
+LiblineaR(data=xTrain,target=yTrain,type=3,cost=0.1,bias=1,verbose=FALSE)
+
+l1svm(data=xTrain,target=yTrain,cost=0.1, epsilon=0.001, bias=1)
+# Make prediction
+p=predict(m,xTest,proba=pr,decisionValues=TRUE)
+
+# Display confusion matrix
+res=table(p$predictions,yTest)
+print(res)
