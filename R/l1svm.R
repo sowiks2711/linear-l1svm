@@ -15,37 +15,86 @@
 
 l1svm<-function(data, target, cost=1, epsilon=0.1, bias=1, verbose=FALSE, ...) {
   input_p <- preprocess_input(data, target)
-  xs = cbind(input_p$data, bias)
-  y = input_p$yc
-  l = input_p$n
-  p = input_p$p
+  xs <- cbind(input_p$data, bias)
+  y <- input_p$yc
+  l <- input_p$n
+  p <- input_p$p
   alpha <- rep(0,l)
   w <- c(rep(0,p),0)
-  U = cost
+  U <- cost
   Qii <- y * y * sapply(1:l, function(i) xs[i,]%*%xs[i,])
+  PGmax_old <- Inf
+  PGmin_old <- -Inf
+  active_size <- l
+
   for (k in 1:1000) {
+    PGmax_new <- -Inf
+    PGmin_new <- Inf
+
     prev_w <- w
-    for(i in sample(1:l)) {
+    s <- 0
+    index <- sample(1:active_size)
+    while(s < active_size) {
+      s <- s + 1
+      i <- index[s]
       G <- y[i] * w %*% xs[i,] - 1
-      PG <- G
+      PG <- 0
 
       if (alpha[i] == 0) {
-        PG <- min(G,0)
+        if (G > PGmax_old)
+        {
+          temp <- index[s]
+          index[s] <- index[active_size]
+          active_size <- active_size - 1
+          s <- s - 1
+          next
+        } else if (G < 0) {
+          PG <- G
+        }
+      } else if (alpha[i] == U) {
+        if (G < PGmin_old)
+        {
+          temp <- index[s]
+          index[s] <- index[active_size]
+          active_size <- active_size - 1
+          s <- s - 1
+          next
+        } else if (G > 0) {
+          PG <- G
+        }
+      } else {
+        PG <- G
       }
 
-      if (alpha[i] == U) {
-        PG <- max(G,0)
-      }
+      PGmax_new <- max(PGmax_new, PG)
+      PGmin_new <- min(PGmin_new, PG)
 
-      if (PG != 0) {
+      if (abs(PG) > 1.0e-12) {
         old_alpha <- alpha[i]
         alpha[i] <- min(max(alpha[i]-G/Qii[i],0),U)
         w <- w + (alpha[i] - old_alpha)*y[i]*xs[i,]
       }
     }
-    diff <- prev_w - w
-    if(sqrt(diff %*% diff) < epsilon) break
 
+    if(PGmax_new - PGmin_new <= epsilon) {
+      if (active_size == l) {
+        break
+      } else {
+        active_size <- l
+        PGmax_old <- Inf
+        PGmin_old <- -Inf
+        next
+      }
+    }
+
+    PGmax_old <- PGmax_new
+    PGmin_old <- PGmin_new
+    if (PGmax_old <= 0) {
+      PGmax_old <- Inf
+    }
+    if (PGmin_old >= 0) {
+      PGmin_old <- -Inf
+    }
   }
   w
 }
