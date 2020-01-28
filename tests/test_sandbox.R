@@ -14,7 +14,7 @@ y <- data[,4]
 
 # l1svm, l2svm, implementation
 
-measurements2 <- lapply(seq(1000,10000,1000), function(size) {
+benchmark_svm <- function(size, repeats) {
   train=sample(1:dim(data)[1],size)
   xTrain=x[train,]
   yTrain=y[train]
@@ -24,16 +24,24 @@ measurements2 <- lapply(seq(1000,10000,1000), function(size) {
   l1svm_their <- function() LiblineaR(data=s,target=yTrain,type=3,cost=0.1, epsilon = 0.001, bias=1, cross=0,verbose=FALSE)
   l1svm_ours <- function() l1svm(data=s,target=yTrain,cost=0.1, epsilon=0.001, bias=1)
 
-  microbenchmark(l2svm_their(), l1svm_their(), l1svm_ours(), times = 5)
-})
+  microbenchmark(l2svm_their(), l1svm_their(), l1svm_ours(), times = repeats)
+
+}
+
+measurements2 <- lapply(seq(1000,10000,1000), benchmark_svm(repeats = 5))
 
 measurements
 
-times_with_size <- M
+data.frame(seq(1000,10000,1000), measurements)
+
+
+
+benchmark_svm(5000, 1)
 benchmark_data <- Reduce(function(x, y) rbind, measurements)
 
 library(ggplot2)
 benchmark_data %>%
+  ggplot(aes(x = benchmark_data$time))
 
 res %>% mutate(size = 100)
 cbind(size=100, res)
