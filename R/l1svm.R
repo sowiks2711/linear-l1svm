@@ -1,19 +1,30 @@
-# Hello, world!
+# l1svm
 #
 # This is an example function named 'hello'
 # which prints 'Hello, world!'.
 #
-# You can learn more about package authoring with RStudio at:
+# data
+# a nxp data matrix. Each row stands for an example (sample, point) and each column stands for a dimension (feature, variable).
 #
-#   http://r-pkgs.had.co.nz/
+# target
+# a response vector for prediction tasks with one value for each of the n rows of data. For classification, the values correspond to class labels and can be a 1xn matrix, a simple vector or a factor. For regression, the values correspond to the values to predict, and can be a 1xn matrix or a simple vector.
 #
-# Some useful keyboard shortcuts for package authoring:
 #
-#   Build and Reload Package:  'Ctrl + Shift + B'
-#   Check Package:             'Ctrl + Shift + E'
-#   Test Package:              'Ctrl + Shift + T'
+# cost
+# cost of constraints violation (default: 1). Rules the trade-off between regularization and correct classification on data. It can be seen as the inverse of a regularization constant.
+#
+#
+# epsilon
+# set tolerance of termination criterion for optimization. Default set to 0.1.
+#
+# bias
+# if bias > 0, instance data becomes [data; bias]; if <= 0, no bias term added (default 1)
+#
+#
+#
+#
 
-l1svm<-function(data, target, cost=1, epsilon=0.1, bias=1, verbose=FALSE, ...) {
+l1svm<-function(data, target, cost=1, epsilon=0.1, bias=1, ...) {
   input_p <- preprocess_input(data, target)
   xs <- cbind(input_p$data, bias)
   y <- input_p$yc
@@ -98,6 +109,9 @@ l1svm<-function(data, target, cost=1, epsilon=0.1, bias=1, verbose=FALSE, ...) {
   }
   w
 }
+
+# preprocess_input
+# Function used for ensuring that data and target arguments for l1svm functions have appriopriate format
 
 preprocess_input <- function(data, target) {
   if (!inherits(data, "matrix") && !inherits(data, "matrix.csr")) stop("Argument data is not a matrix!")

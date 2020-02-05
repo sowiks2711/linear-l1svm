@@ -6,7 +6,7 @@ autosize: true
 font-family: 'Risque'
 
 
-# Binary classification with L2 regularization nad and L1 cost function using coordinate descent method.
+# Binary classification using SVM with L2 regularization and L1 cost function using coordinate descent method.
 
 SVM
 ========================================================

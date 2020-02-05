@@ -87,6 +87,7 @@ measurements_wide %>% Reduce(rbind, .) %>% Reduce(rbind, .) %>%
   Time = time) %>%
   ggplot(aes(x = Observations, y = Time, color = `Nr of features`)) +
   geom_point() +
+  theme_bw() +
   scale_color_brewer(type="qual") +
   facet_wrap(~Method) +
   ggtitle("Performance for different observations and nr of features", subtitle = "Every sample shuffled")
